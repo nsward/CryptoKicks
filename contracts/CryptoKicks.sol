@@ -314,7 +314,7 @@ contract CryptoKicks is Pausable, StudentRole, ERC721Full {
      * @dev Returns an URI for a given token ID. Throws if the token ID 
      * does not exist. May return an empty string.
      * We are returning the IPFS hash in string form (the concatenation of
-     * the 3 multihash paramters), but the tokenURI() function is used
+     * the 3 multihash paramaters), but the tokenURI() function is used
      * to maintain consistency with the ERC721 standard
      * @param tokenId uint256 ID of the token to query
      * @return IPFS hash of the token's metadata (in hexadecimal)
