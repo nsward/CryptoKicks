@@ -2,25 +2,10 @@ pragma solidity ^0.4.24;
 
 import "openzeppelin-solidity/contracts/lifecycle/Pausable.sol";
 import "openzeppelin-solidity/contracts/token/ERC721/ERC721Full.sol";
+// import "./OwnableDelegateProxy.sol";
+import "./ProxyRegistry.sol";
 import "./StudentRole.sol";
 import "./Strings.sol";
-
-
-/**
- * @title OwnableDelegateProxy
- * @dev Interface for the OpenSea OwnableDelegateProxy
- */
-contract OwnableDelegateProxy { }
-
-
-/**
- * @title ProxyRegistry
- * @dev Interface for the OpenSea ProxyRegistry, which allows OpenSea
- * users to buy/sell on the platform without repeated approve() calls
- */
-contract ProxyRegistry {
-    mapping(address => OwnableDelegateProxy) public proxies;
-}
 
 
 /**
