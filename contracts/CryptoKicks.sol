@@ -74,7 +74,7 @@ contract CryptoKicks is Pausable, StudentRole, ERC721Full {
         public 
     {
         require(_proxyRegistryAddress != address(0), "Proxy Registry required.");
-        require(tokensPerStudent > 0, "tokensPerStudent can not be 0.");
+        require(_tokensPerStudent > 0, "tokensPerStudent can not be 0.");
         proxyRegistryAddress = _proxyRegistryAddress;
         tokensPerStudent = _tokensPerStudent;
     }
