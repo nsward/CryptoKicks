@@ -2,9 +2,8 @@ pragma solidity ^0.4.24;
 
 import "openzeppelin-solidity/contracts/lifecycle/Pausable.sol";
 import "openzeppelin-solidity/contracts/token/ERC721/ERC721Full.sol";
-// import "./OwnableDelegateProxy.sol";
-import "./ProxyRegistry.sol";
 import "./StudentRole.sol";
+import "./ProxyRegistry.sol";
 import "./Strings.sol";
 
 
@@ -27,15 +26,11 @@ contract CryptoKicks is Pausable, StudentRole, ERC721Full {
     // contract owner
     uint public tokensPerStudent;
 
-    // Used to store IPFS hashes, which use multihash format
-    // (first byte is the hash function used, next byte is the size of
-    // the hash, remainder is the hash itself)
-    // https://github.com/saurfang/ipfs-multihash-on-solidity
-    struct Multihash {
-        bytes32 digest;
-        uint8 hashFunction;
-        uint8 size;
-    }
+    // Tracks the total number of tokens minted. Differs from totalSupply
+    // in that the length of the _allTokens array decreases when tokens
+    // are burned, which can cause tokenId collisions as we are using
+    // incremental ids
+    uint public totalMinted;
 
     // Keeps track of the number of tokens each student has minted
     // address => number of tokens minted
@@ -47,12 +42,18 @@ contract CryptoKicks is Pausable, StudentRole, ERC721Full {
     // tokenId => student who minted it
     mapping (uint => address) public minter; 
 
-    // Used instead of the inerited _tokenURIs mapping. Stores the IPFS
-    // hash of the token metadata in multihash format. Still returned in 
-    // string format by tokenURI() function to maintain compatibility 
-    // with ERC721 standard
-    // tokenId => multihash
-    mapping (uint => Multihash) public tokenIPFSHashes;  
+    // Used instead of the inerited _tokenURIs mapping, becuase openZeppelin
+    // altered visibility of the tokenURI mapping in their ERC721 
+    // implementation, requiring a separate mapping in order to return
+    // the correct URI from tokenURI (tokenBaseURI + tokenIPFSHash). 
+    // Stores the IPFS hash of the token metadata as a string.
+    // tokenId => hash
+    mapping (uint => string) public tokenIPFSHashes;  
+
+    // Base URI. TokenURI's are formed by concatenating baseURI and
+    // the token's IPFS hash
+    // string public tokenBaseURI = "https://ipfs.infura.io/ipfs/";
+    string public tokenBaseURI = "https://gateway.ipfs.io/ipfs/";
 
     // ===============
     // Constructor:
@@ -84,8 +85,6 @@ contract CryptoKicks is Pausable, StudentRole, ERC721Full {
     // Modifiers:
     // ===============
 
-    // Note: onlyStudent() modifier is inherited from StudentRoles contract
-
     /**
      * @dev Students can only mint if they have minted fewer than the
      * tokensPerStudent limit
@@ -97,36 +96,40 @@ contract CryptoKicks is Pausable, StudentRole, ERC721Full {
 
 
     // ===============
-    // External / Public State-Transition Functions:
+    // External State-Transition Functions:
     // ===============
 
     /**
      * @dev Function to mint tokens
      * @param to The address that will receive the minted tokens.
-     * @param _digest the IPFS hash that returns a JSON blob with the token
-     * metadata. Expected in multihash format with digest representing the
-     * hash itself. **Note that multihash paramaters are expected in hexadecimal
-     * form
+     * @param ipfsHash the IPFS hash that returns a JSON blob with the token
+     * metadata. Expected as base58 encoded string in multihash format 
+     * (first byte is hash functino used, second byte is size of digest,
+     * remainder is digest)
      * (https://github.com/multiformats/multihash)
-     * @param _hashFunction The hash function used (following multihash format)
-     * @param _size Length of the hash in bytes
      * @return The tokenId of the minted token
      */
-    function mintTo(address to, bytes32 _digest, uint8 _hashFunction, uint8 _size)
+    function mintTo(address to, string ipfsHash)
         external
         onlyStudent
         onlyUnderMintLimit
+        whenNotPaused
         returns (uint)
     {
+        require(to != address(0), "Can not mint token to 0x address");
+
+        // Note: This prevents the addition of arbitrary length data and
+        // works with the most common ipfs hash implementations, but if more
+        // than students are minting tokens, this should be "future-proofed"
+        // using multihash storage format to match any ipfs hash implementation
+        require(bytes(ipfsHash).length <= 46, "Max length for IPFS Hash string is 46 bytes");
+
         // Grab the next tokenId. tokenId's need to start at 0 and increment
         // by 1 in order for OpenSea storefront to be able to backfill tokens
         uint newTokenId = _getNextTokenId();
 
         // Mint the new token
-        _mint(to, newTokenId);
-
-        // Set the token URI data / IPFS hash of the metadata
-        _setTokenIPFSHash(newTokenId, _digest, _hashFunction, _size);
+        _mint(to, newTokenId, ipfsHash);
 
         return newTokenId;
     }
@@ -170,16 +173,12 @@ contract CryptoKicks is Pausable, StudentRole, ERC721Full {
 
         super._burn(owner, tokenId);
 
-        // TODO: make sure this works with inherited library
         // Subtract 1 from the student's minted tokens count
         address student = minter[tokenId];
         mintedTokensCount[student] = mintedTokensCount[student].sub(1);
 
         // delete the tokenId from the minter mapping
         delete minter[tokenId];
-
-        // delete the token's metadata IPFS hash
-        delete tokenIPFSHashes[tokenId];
     }
 
     /**
@@ -188,42 +187,36 @@ contract CryptoKicks is Pausable, StudentRole, ERC721Full {
      * @param to address the beneficiary that will own the minted token
      * @param tokenId uint256 ID of the token to be minted by the msg.sender
      */
-    function _mint(address to, uint256 tokenId) internal {
+    function _mint(address to, uint256 tokenId, string ipfsHash) internal {
         super._mint(to, tokenId);
 
-        // TODO: Make sure this works with inherited library
+        // Increment the totalMinted value
+        totalMinted = totalMinted.add(1);
+
         // Increment the minter's minted tokens count
         mintedTokensCount[msg.sender] = mintedTokensCount[msg.sender].add(1);
 
         // Add the token minter to the minter mapping
         minter[tokenId] = msg.sender;
 
+        // Set the token URI data / IPFS hash of the metadata
+        _setTokenIPFSHash(tokenId, ipfsHash);
     }
 
     /**
      * @dev Internal function to set the token IPFS Hash for a given token's
      * metadata. Reverts if the token ID does not exist
-     * @param _digest the IPFS hash that returns a JSON blob with the token
-     * metadata. Expected in multihash format with digest representing the
-     * hash itself. **Note that multihash paramaters are expected in hexadecimal
-     * form
-     * (https://github.com/multiformats/multihash)
-     * @param _hashFunction The hash function used (following multihash format)
-     * @param _size Length of the hash in bytes
+     * @param ipfsHash the IPFS hash that returns a JSON blob with the token
+     * metadata. 
      */
     function _setTokenIPFSHash(
-        uint256 tokenId, 
-        bytes32 _digest, 
-        uint8 _hashFunction, 
-        uint8 _size
+        uint tokenId,
+        string ipfsHash
     ) 
         internal 
     {
         require(_exists(tokenId));
-
-        // TODO: make sure this works
-        Multihash memory IPFSHash = Multihash(_digest, _hashFunction, _size);
-        tokenIPFSHashes[tokenId] = IPFSHash;
+        tokenIPFSHashes[tokenId] = ipfsHash;
     }
 
 
@@ -239,7 +232,7 @@ contract CryptoKicks is Pausable, StudentRole, ERC721Full {
      * minting limit
      */
     function isUnderMintLimit(address _student) internal view returns (bool) {
-        return mintedTokensCount[_student] <= tokensPerStudent;
+        return mintedTokensCount[_student] < tokensPerStudent;
     }
 
     /**
@@ -264,12 +257,9 @@ contract CryptoKicks is Pausable, StudentRole, ERC721Full {
      * @return The next tokenId
      */
     function _getNextTokenId() internal view returns (uint) {
-        return totalSupply().add(1);
+        return totalMinted;
     }
 
-    /**
-   * Override isApprovedForAll to whitelist user's OpenSea proxy accounts to enable gas-less listings.
-   */
    /**
      * @dev Override the isApprovedForAll() function to whitelist user's
      * OpenSea proxy accounts to enable gas-less listings.
@@ -291,29 +281,16 @@ contract CryptoKicks is Pausable, StudentRole, ERC721Full {
         return super.isApprovedForAll(owner, operator);
     }
 
-
-    // TODO: returning string conforms to the ERC721 standard, but implies
-    // that we are returning the UTF-8 encoded IPFS hash, when we are actually
-    // returning the hex form
     /**
-     * @dev Returns an URI for a given token ID. Throws if the token ID 
-     * does not exist. May return an empty string.
-     * We are returning the IPFS hash in string form (the concatenation of
-     * the 3 multihash paramaters), but the tokenURI() function is used
-     * to maintain consistency with the ERC721 standard
-     * @param tokenId uint256 ID of the token to query
-     * @return IPFS hash of the token's metadata (in hexadecimal)
-     */
+    * @dev Returns URI for a given token ID
+    * Throws if the token ID does not exist. May return an empty string.
+    * @param tokenId uint256 ID of the token to query
+    */
     function tokenURI(uint256 tokenId) external view returns (string) {
-
-        // Hash = hashFunction (2 bytes) + size (2 bytes) + digest
         require(_exists(tokenId));
-        Multihash memory tokenIPFSHash = tokenIPFSHashes[tokenId];
-        string memory _hashFunction = Strings.uint2str(uint(tokenIPFSHash.hashFunction));
-        string memory _size = Strings.uint2str(uint(tokenIPFSHash.size));
-        string memory _digest = Strings.uint2str(uint(tokenIPFSHash.digest));
-        string memory _fullHash = Strings.strConcat(_hashFunction, _size, _digest);
-        return _fullHash;
+        // string memory foo = super.tokenURI(tokenId);
+        // return Strings.strConcat(tokenBaseURI, _tokenURIs[tokenId]);
+        return Strings.strConcat(tokenBaseURI, tokenIPFSHashes[tokenId]);
     }
 
 
