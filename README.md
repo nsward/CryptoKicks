@@ -1,6 +1,6 @@
 # Crypto Kicks  
   
-Address on Rinkeby testnet: <ahref="https://rinkeby.etherscan.io/address/0xde3b045441acffed1cbf41edd7904d7f0fedf421">0xDe3b045441AcFFeD1cBF41Edd7904D7f0FEDf421</a>  
+Address on Rinkeby testnet: <a href="https://rinkeby.etherscan.io/address/0xde3b045441acffed1cbf41edd7904d7f0fedf421">0xDe3b045441AcFFeD1cBF41Edd7904D7f0FEDf421</a>  
   
 ERC-721 contract for Apprent.io's Crypto Kicks. Still very much a work in progress. Some of the changes / additions to the standard ERC-721:  
   
