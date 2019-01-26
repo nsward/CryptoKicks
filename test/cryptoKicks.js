@@ -28,7 +28,9 @@ contract("CryptoKicks", function(accounts) {
 
     beforeEach("Instantiate CryptoKicks Contract", async() => {
         // Address of OpenSea Proxy Registry on Rinkeby:
-        proxyRegistryAddress = "0xf57b2c51ded3a29e6891aba85459d600256cf317";
+        proxyRegistryAddress = web3.utils.toChecksumAddress(
+            "0xf57b2c51ded3a29e6891aba85459d600256cf317"
+        );
         name = "Crypto Kicks";
         symbol = "CRK";
         tokensPerStudent = 4;

@@ -1,4 +1,4 @@
-pragma solidity ^0.4.24;
+pragma solidity 0.5.2;
 
 import "openzeppelin-solidity/contracts/lifecycle/Pausable.sol";
 import "openzeppelin-solidity/contracts/token/ERC721/ERC721Full.sol";
@@ -67,8 +67,8 @@ contract CryptoKicks is Pausable, StudentRole, ERC721Full {
      * @param _tokensPerStudent Max number of tokens each student can mint
      */
     constructor(
-        string _name, 
-        string _symbol, 
+        string memory _name, 
+        string memory _symbol, 
         address _proxyRegistryAddress, 
         uint _tokensPerStudent) 
         ERC721Full(_name, _symbol) 
@@ -109,7 +109,7 @@ contract CryptoKicks is Pausable, StudentRole, ERC721Full {
      * (https://github.com/multiformats/multihash)
      * @return The tokenId of the minted token
      */
-    function mintTo(address to, string ipfsHash)
+    function mintTo(address to, string calldata ipfsHash)
         external
         onlyStudent
         onlyUnderMintLimit
@@ -187,7 +187,7 @@ contract CryptoKicks is Pausable, StudentRole, ERC721Full {
      * @param to address the beneficiary that will own the minted token
      * @param tokenId uint256 ID of the token to be minted by the msg.sender
      */
-    function _mint(address to, uint256 tokenId, string ipfsHash) internal {
+    function _mint(address to, uint256 tokenId, string memory ipfsHash) internal {
         super._mint(to, tokenId);
 
         // Increment the totalMinted value
@@ -211,7 +211,7 @@ contract CryptoKicks is Pausable, StudentRole, ERC721Full {
      */
     function _setTokenIPFSHash(
         uint tokenId,
-        string ipfsHash
+        string memory ipfsHash
     ) 
         internal 
     {
@@ -274,7 +274,7 @@ contract CryptoKicks is Pausable, StudentRole, ERC721Full {
     {
         // Whitelist OpenSea proxy contract for easy trading.
         ProxyRegistry proxyRegistry = ProxyRegistry(proxyRegistryAddress);
-        if (proxyRegistry.proxies(owner) == operator) {
+        if (address(proxyRegistry.proxies(owner)) == operator) {
             return true;
         }
 
@@ -286,7 +286,7 @@ contract CryptoKicks is Pausable, StudentRole, ERC721Full {
     * Throws if the token ID does not exist. May return an empty string.
     * @param tokenId uint256 ID of the token to query
     */
-    function tokenURI(uint256 tokenId) external view returns (string) {
+    function tokenURI(uint256 tokenId) external view returns (string memory) {
         require(_exists(tokenId));
         // string memory foo = super.tokenURI(tokenId);
         // return Strings.strConcat(tokenBaseURI, _tokenURIs[tokenId]);

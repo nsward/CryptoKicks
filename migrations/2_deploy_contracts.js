@@ -1,9 +1,3 @@
-// // Token name
-    // string private constant _name = "Crypto Kicks";
-
-    // // Token symbol
-    // string private constant _symbol = "CRK";
-
 const CryptoKicks = artifacts.require("./CryptoKicks.sol");
 
 module.exports = function(deployer) {
