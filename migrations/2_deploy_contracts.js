@@ -7,15 +7,12 @@ module.exports = function(deployer) {
 
     let name = "Crypto Kicks";
     let symbol = "CRK";
-    let tokensPerStudent = 4;
-
 
     deployer.deploy(
         CryptoKicks,
         name,
         symbol,
         proxyRegistryAddress,
-        tokensPerStudent,
         {gas: 5000000}
     );
 }
