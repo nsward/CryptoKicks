@@ -1,6 +1,6 @@
 # Crypto Kicks  
   
-Address on Rinkeby testnet: <a href="https://rinkeby.etherscan.io/">New version not yet deployed</a>  
+Address on Rinkeby testnet: <a href="https://rinkeby.etherscan.io/address/0xac5058a16f4938646126b93095386289fa0af8fb">0xaC5058a16f4938646126b93095386289fa0AF8fb</a>  
   
 ERC-721 contract for Apprent.io's Crypto Kicks. 
   
