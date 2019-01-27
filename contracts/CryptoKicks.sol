@@ -40,8 +40,7 @@ contract CryptoKicks is ERC721Full, Ownable, MinterRole {
 
     // Base URI. TokenURI's are formed by concatenating baseURI and
     // the token's IPFS hash
-    // string public tokenBaseURI = "https://ipfs.infura.io/ipfs/";
-    string public tokenBaseURI = "https://gateway.ipfs.io/ipfs/";
+    string public tokenBaseURI = "https://ipfs.infura.io/ipfs/";
 
     // ===============
     // Constructor:
