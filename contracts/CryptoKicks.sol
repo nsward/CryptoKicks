@@ -1,6 +1,7 @@
 pragma solidity 0.5.2;
 
 import "openzeppelin-solidity/contracts/token/ERC721/ERC721Full.sol";
+import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 import "openzeppelin-solidity/contracts/access/roles/MinterRole.sol";
 import "./ProxyRegistry.sol";
 import "./Strings.sol";
@@ -11,7 +12,9 @@ import "./Strings.sol";
  * @author Nick Ward
  * @dev ERC721 contract for Apprent.io Crypto-Kicks
  */
-contract CryptoKicks is ERC721Full, MinterRole {
+contract CryptoKicks is ERC721Full, Ownable, MinterRole {
+    // Note: no ownable functions. Only included to allow owner to edit
+    // OpenSea storefront
 
     // ===============
     // State Variables and Data Structures:
