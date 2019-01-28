@@ -16,7 +16,7 @@ contract("CryptoKicks", function(accounts) {
   const anyone = accounts[3];
 
   // The URI to which our IPFS hash should be appended
-  const ipfsURIBase = 'https://gateway.ipfs.io/ipfs/';
+  const ipfsURIBase = "https://ipfs.infura.io/ipfs/";
 
   // Example of what `ipfs add` will return (a base58 encoded string)
   const ipfsHash = 'QmbyizSHLirDfZhms75tdrrdiVkaxKvbcLpXzjB5k34a31';
