@@ -1,4 +1,4 @@
-pragma solidity 0.5.2;
+pragma solidity ^0.5.0;
 
 /**
  * @title IERC165
@@ -920,6 +920,79 @@ contract ERC721Full is ERC721, ERC721Enumerable, ERC721Metadata {
 
 
 
+/**
+ * @title Ownable
+ * @dev The Ownable contract has an owner address, and provides basic authorization control
+ * functions, this simplifies the implementation of "user permissions".
+ */
+contract Ownable {
+    address private _owner;
+
+    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+
+    /**
+     * @dev The Ownable constructor sets the original `owner` of the contract to the sender
+     * account.
+     */
+    constructor () internal {
+        _owner = msg.sender;
+        emit OwnershipTransferred(address(0), _owner);
+    }
+
+    /**
+     * @return the address of the owner.
+     */
+    function owner() public view returns (address) {
+        return _owner;
+    }
+
+    /**
+     * @dev Throws if called by any account other than the owner.
+     */
+    modifier onlyOwner() {
+        require(isOwner());
+        _;
+    }
+
+    /**
+     * @return true if `msg.sender` is the owner of the contract.
+     */
+    function isOwner() public view returns (bool) {
+        return msg.sender == _owner;
+    }
+
+    /**
+     * @dev Allows the current owner to relinquish control of the contract.
+     * @notice Renouncing to ownership will leave the contract without an owner.
+     * It will not be possible to call the functions with the `onlyOwner`
+     * modifier anymore.
+     */
+    function renounceOwnership() public onlyOwner {
+        emit OwnershipTransferred(_owner, address(0));
+        _owner = address(0);
+    }
+
+    /**
+     * @dev Allows the current owner to transfer control of the contract to a newOwner.
+     * @param newOwner The address to transfer ownership to.
+     */
+    function transferOwnership(address newOwner) public onlyOwner {
+        _transferOwnership(newOwner);
+    }
+
+    /**
+     * @dev Transfers control of the contract to a newOwner.
+     * @param newOwner The address to transfer ownership to.
+     */
+    function _transferOwnership(address newOwner) internal {
+        require(newOwner != address(0));
+        emit OwnershipTransferred(_owner, newOwner);
+        _owner = newOwner;
+    }
+}
+
+
+
 /*
 ORACLIZE_API
 Copyright (c) 2015-2016 Oraclize SRL
@@ -994,7 +1067,9 @@ library Strings {
  * @author Nick Ward
  * @dev ERC721 contract for Apprent.io Crypto-Kicks
  */
-contract CryptoKicks is ERC721Full, MinterRole {
+contract CryptoKicks is ERC721Full, Ownable, MinterRole {
+    // Note: no ownable functions. Only included to allow owner to edit
+    // OpenSea storefront
 
     // ===============
     // State Variables and Data Structures:
@@ -1020,8 +1095,7 @@ contract CryptoKicks is ERC721Full, MinterRole {
 
     // Base URI. TokenURI's are formed by concatenating baseURI and
     // the token's IPFS hash
-    // string public tokenBaseURI = "https://ipfs.infura.io/ipfs/";
-    string public tokenBaseURI = "https://gateway.ipfs.io/ipfs/";
+    string public tokenBaseURI = "https://ipfs.infura.io/ipfs/";
 
     // ===============
     // Constructor:
