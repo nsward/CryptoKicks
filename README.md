@@ -1,4 +1,4 @@
-# Crypto Kicks  
+# Cryptokicks  
   
 Address on Rinkeby testnet: <a href="https://rinkeby.etherscan.io/address/0xe1c41c9b88a61fc86f4c83c766eda60f3c8012da">0xe1c41c9b88a61Fc86f4C83c766eDa60f3C8012DA</a>  
   
