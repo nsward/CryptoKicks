@@ -1,6 +1,6 @@
 # CryptoKicks  
   
-Address on Rinkeby testnet: <a href="https://rinkeby.etherscan.io/address/0xe1c41c9b88a61fc86f4c83c766eda60f3c8012da">0xe1c41c9b88a61Fc86f4C83c766eDa60f3C8012DA</a>  
+Address on Rinkeby testnet: <a href="https://rinkeby.etherscan.io/address/0xa6300e6d9ace0d9622639cbebada3dd5bfeab34d#code">0xa6300e6d9ace0d9622639cbebada3dd5bfeab34d</a>  
   
 ERC-721 contract for Apprent.io's CryptoKicks.  
   
